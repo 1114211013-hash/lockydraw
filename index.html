@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>抽籤小程式</title>
+    <style>
+      :root {
+        --bg: #f5f7ff;
+        --card: #ffffff;
+        --primary: #5b6cff;
+        --primary-dark: #4658d6;
+        --accent: #ffb84d;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --border: #dfe6ff;
+        --success: #23b26d;
+        --shadow: 0 18px 40px rgba(91, 108, 255, 0.16);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(135deg, #eef4ff 0%, #f9f6ff 100%);
+        font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+        color: var(--text);
+      }
+
+      .app {
+        width: min(90vw, 760px);
+        background: var(--card);
+        border: 1px solid rgba(91, 108, 255, 0.12);
+        border-radius: 24px;
+        box-shadow: var(--shadow);
+        padding: 28px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: clamp(2rem, 4vw, 2.8rem);
+        letter-spacing: 0.04em;
+      }
+
+      .subtitle {
+        margin: 0 0 20px;
+        color: var(--muted);
+        font-size: 0.98rem;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 1.2fr 0.8fr;
+        gap: 22px;
+      }
+
+      .panel {
+        padding: 18px;
+        background: #f8faff;
+        border: 1px solid var(--border);
+        border-radius: 18px;
+      }
+
+      textarea {
+        width: 100%;
+        min-height: 180px;
+        resize: vertical;
+        padding: 16px;
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        background: #fff;
+        font-size: 1rem;
+        line-height: 1.7;
+        color: var(--text);
+      }
+
+      textarea:focus {
+        outline: 2px solid rgba(91, 108, 255, 0.2);
+        border-color: var(--primary);
+      }
+
+      .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 16px;
+      }
+
+      button {
+        border: 0;
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      }
+
+      button:hover {
+        transform: translateY(-1px);
+      }
+
+      .primary {
+        background: var(--primary);
+        color: white;
+        box-shadow: 0 10px 24px rgba(91, 108, 255, 0.25);
+      }
+
+      .primary:hover {
+        background: var(--primary-dark);
+      }
+
+      .secondary {
+        background: #eef2ff;
+        color: var(--primary-dark);
+      }
+
+      .result-box {
+        display: grid;
+        place-items: center;
+        min-height: 220px;
+        background: linear-gradient(180deg, #f7f9ff 0%, #ffffff 100%);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 18px;
+        text-align: center;
+      }
+
+      .label {
+        font-size: 0.82rem;
+        color: var(--muted);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .winner {
+        margin-top: 12px;
+        font-size: clamp(2rem, 5vw, 3rem);
+        font-weight: 900;
+        color: var(--primary);
+        min-height: 2.2em;
+      }
+
+      .count-wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 10px;
+      }
+
+      select {
+        appearance: none;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: white;
+        padding: 10px 14px;
+        font-size: 1rem;
+        color: var(--text);
+      }
+
+      .history {
+        margin-top: 18px;
+      }
+
+      .history h3 {
+        margin: 0 0 10px;
+        font-size: 1rem;
+      }
+
+      .history-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      .history-list li {
+        background: #eef2ff;
+        color: var(--primary-dark);
+        border-radius: 999px;
+        padding: 7px 12px;
+        font-size: 0.9rem;
+        font-weight: 700;
+      }
+
+      @media (max-width: 700px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+
+        .app {
+          padding: 20px 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <h1>抽籤小程式</h1>
+      <p class="subtitle">輸入名字，每次都能隨機抽出幸運者。</p>
+
+      <div class="layout">
+        <section class="panel">
+          <textarea id="namesInput" placeholder="每行一個名字，例如：&#10;阿明&#10;小花&#10;大雄&#10;美美"></textarea>
+          <div class="actions">
+            <button class="primary" id="drawBtn">開始抽籤</button>
+            <button class="secondary" id="resetBtn" type="button">清空列表</button>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="result-box">
+            <div>
+              <div class="label">今日幸運者</div>
+              <div class="winner" id="winner">等待抽籤</div>
+            </div>
+          </div>
+
+          <div class="count-wrap">
+            <label for="countSelect">抽取人數</label>
+            <select id="countSelect">
+              <option value="1">1 人</option>
+              <option value="2">2 人</option>
+              <option value="3">3 人</option>
+            </select>
+          </div>
+
+          <div class="history">
+            <h3>抽中紀錄</h3>
+            <ul class="history-list" id="historyList">
+              <li>目前沒有紀錄</li>
+            </ul>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script>
+      const namesInput = document.getElementById('namesInput');
+      const drawBtn = document.getElementById('drawBtn');
+      const resetBtn = document.getElementById('resetBtn');
+      const winnerEl = document.getElementById('winner');
+      const historyList = document.getElementById('historyList');
+      const countSelect = document.getElementById('countSelect');
+
+      const defaultNames = [
+        '阿明',
+        '小花',
+        '大雄',
+        '美美',
+        '老王',
+        '小新',
+        '琪琪',
+        '阿傑'
+      ];
+
+      namesInput.value = defaultNames.join('\n');
+
+      function getNames() {
+        return namesInput.value
+          .split(/\n|，|,/)
+          .map((name) => name.trim())
+          .filter(Boolean);
+      }
+
+      function updateHistory(winners) {
+        const items = winners.map((name) => `<li>${name}</li>`).join('');
+        historyList.innerHTML = items || '<li>目前沒有紀錄</li>';
+      }
+
+      function pickWinners(list, count) {
+        const pool = [...list];
+        const result = [];
+
+        while (result.length < count && pool.length > 0) {
+          const index = Math.floor(Math.random() * pool.length);
+          result.push(pool.splice(index, 1)[0]);
+        }
+
+        return result;
+      }
+
+      function runDraw() {
+        const names = getNames();
+
+        if (names.length === 0) {
+          winnerEl.textContent = '請先輸入名字';
+          return;
+        }
+
+        const count = Number(countSelect.value);
+        const drawingCount = Math.min(count, names.length);
+
+        let animationIndex = 0;
+        const shuffled = [...names].sort(() => Math.random() - 0.5);
+        const interval = setInterval(() => {
+          const currentName = shuffled[animationIndex % shuffled.length];
+          winnerEl.textContent = currentName;
+          animationIndex += 1;
+        }, 80);
+
+        setTimeout(() => {
+          clearInterval(interval);
+          const winners = pickWinners(names, drawingCount);
+          const winnerText = winners.length > 1 ? winners.join('、') : winners[0];
+          winnerEl.textContent = winnerText;
+          updateHistory(winners);
+        }, 1200);
+      }
+
+      drawBtn.addEventListener('click', runDraw);
+      resetBtn.addEventListener('click', () => {
+        namesInput.value = '';
+        winnerEl.textContent = '等待抽籤';
+        historyList.innerHTML = '<li>目前沒有紀錄</li>';
+      });
+    </script>
+  </body>
+</html>
